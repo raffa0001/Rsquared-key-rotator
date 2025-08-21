@@ -32,24 +32,24 @@ Before you begin, ensure you have the following installed on your system:
 # Installation
 
     Clone the repository:
-    code Bash
+    
 
 
 
 
     
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+    git clone https://github.com/your-username/your-repository.git
+    cd your-repository
 
   
 
 Install Python dependencies:
-code Bash
+
 
 
 
     
-pip install -r requirements.txt
+    pip install -r requirements.txt
 
   
 
@@ -57,7 +57,7 @@ pip install -r requirements.txt
 
 Initial Setup:
 Run the setup script to configure the execution environment (Docker or native) and create your initial credentials.
-code Bash
+
 
     
     
@@ -92,7 +92,7 @@ Available Commands:
 Example:
 
 To run a key rotation with your saved settings:
-code Bash
+
 
     
 python3 witness_manager.py run
@@ -104,7 +104,7 @@ python3 witness_manager.py run
 The web interface provides a user-friendly way to manage your witness node.
 
 Start the web server:
-    code Bash
+    
 
         
     python3 app.py
