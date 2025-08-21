@@ -103,17 +103,17 @@ python3 witness_manager.py run
 
 The web interface provides a user-friendly way to manage your witness node.
 
-    Start the web server:
+Start the web server:
     code Bash
 
         
     python3 app.py
 
 
-    Access the web UI:
-    Open your web browser and navigate to https://127.0.0.1:5001.
+Access the web UI:
+Open your web browser and navigate to https://127.0.0.1:5001.
 
-    You will be prompted to log in with the credentials you created during the initial setup.
+You will be prompted to log in with the credentials you created during the initial setup.
 
 # Future Plans
 
