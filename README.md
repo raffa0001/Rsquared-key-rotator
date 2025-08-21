@@ -31,27 +31,15 @@ Before you begin, ensure you have the following installed on your system:
 
 # Installation
 
-    Clone the repository:
-    
-
-
-
-
+Clone the repository:
     
     git clone https://github.com/your-username/your-repository.git
     cd your-repository
 
-  
-
 Install Python dependencies:
 
-
-
-
-    
     pip install -r requirements.txt
 
-  
 
 (Note: You will need to create a requirements.txt file that includes Flask, Flask-HTTPAuth, and any other necessary libraries.)
 
@@ -59,13 +47,8 @@ Initial Setup:
 Run the setup script to configure the execution environment (Docker or native) and create your initial credentials.
 
 
-    
-    
-
-        
     python3 witness_manager.py setup
 
-      
 
 # Usage
 
@@ -95,7 +78,7 @@ To run a key rotation with your saved settings:
 
 
     
-python3 witness_manager.py run
+    python3 witness_manager.py run
 
   
 
