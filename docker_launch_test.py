@@ -6,9 +6,9 @@ import shutil
 # Your witness ID (e.g., "1.6.125")
 WITNESS_ID = "1.6.125"
 # Your NEW Public Key
-PUB_KEY = "RQRX7DYbbNFfgE1vWFgfccCAQGV4JJ7j45mRtcm9sMhnyy1ApCTLUQ"
+PUB_KEY = "key"
 # Your NEW Private WIF Key
-WIF_KEY = "5K8imQ64ry2ZBvNCWWJNLpU8TsYdHHuoHwUmHstk6JY8gStJV5G"
+WIF_KEY = "key"
 # --- END CONFIGURATION ---
 
 
