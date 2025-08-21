@@ -1,6 +1,6 @@
 # Rsquared-key-rotator
 
-R-Squared Witness Managemen
+R-Squared Witness Management
 
 This is a comprehensive suite of tools designed to simplify the management of R-Squared witness nodes. It includes a command-line interface (CLI) for key rotation and witness node management, as well as a web-based UI for a more user-friendly experience.
 
