@@ -1,0 +1,18 @@
+*.csv
+*.npz
+*.npy
+*.jpg
+*.png
+witness_node_data_dir
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+venv/
+.env/

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Witness Manager UI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Witness Manager Web UI</h1>
+
+        <div class="status-section">
+            <h2>System Status</h2>
+            <div id="configStatus" class="status-card">
+                <div class="status-indicator" id="configIndicator">
+                    <span class="dot loading"></span>
+                </div>
+                <div class="status-info">
+                    <h3>Execution Configuration</h3>
+                    <p id="configDetails">Loading configuration...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>Security Warning:</strong> This interface handles your private WIF key.
+            Only run this on a trusted local network. The key is used for the rotation
+            process and is not stored on the server after the process completes.
+        </div>
+
+        <form id="witnessForm">
+            <div class="form-group">
+                <label for="account_name">Witness Account Name:</label>
+                <input type="text" id="account_name" name="account_name" required placeholder="e.g., freedom-node">
+            </div>
+            <div class="form-group">
+                <label for="url">Witness URL (Optional):</label>
+                <input type="text" id="url" name="url" placeholder="Your witness URL">
+            </div>
+            <div class="form-group">
+                <label for="wif_key">ORIGINAL WIF Private Key:</label>
+                <input type="password" id="wif_key" name="wif_key" required>
+                <small class="help-text">Enter the currently active signing key for your witness account</small>
+            </div>
+            <button type="submit" id="submitBtn" disabled>Start Key Rotation</button>
+        </form>
+
+        <div id="result-controls" style="margin-top: 20px;">
+            <button id="showKeysBtn" class="button">Show New Keys</button>
+            <div id="keysContainer" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid #ccc; background-color: #f5f5f5; border-radius: 5px;">
+                <h4>New Witness Keys (Store these securely!)</h4>
+                <pre id="keyDetails"></pre>
+            </div>
+        </div>
+
+        <div class="actions-section">
+            <button type="button" id="reconfigureBtn" class="secondary-btn">Reconfigure Execution Mode</button>
+        </div>
+
+        <h2>Process Log</h2>
+        <div class="log-controls">
+            <button type="button" id="clearLogBtn" class="small-btn">Clear Log</button>
+            <button type="button" id="autoScrollBtn" class="small-btn active">Auto-scroll: ON</button>
+        </div>
+        <div id="progressLog" class="log-container">
+            Waiting for process to start...
+        </div>
+    </div>
+
+    <script>
+        let autoScroll = true;
+        let configLoaded = false;
+
+        // Load configuration on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+        });
+
+        async function loadConfiguration() {
+            const configIndicator = document.getElementById('configIndicator');
+            const configDetails = document.getElementById('configDetails');
+            const submitBtn = document.getElementById('submitBtn');
+
+            try {
+                const response = await fetch('/config');
+                const result = await response.json();
+
+                if (result.status === 'success' && result.config.configured) {
+                    const config = result.config;
+                    const executionMode = config.use_docker ? 'Docker' : 'Native Binaries';
+                    const nodeType = config.local_node ? 'Local Node' : 'External RPC';
+
+                    configIndicator.innerHTML = '<span class="dot success"></span>';
+                    configDetails.innerHTML = `
+                        <strong>Mode:</strong> ${executionMode}<br>
+                        <strong>Connection:</strong> ${nodeType}<br>
+                        <span class="config-ready">Ready for operation</span>
+                    `;
+
+                    submitBtn.disabled = false;
+                    configLoaded = true;
+                } else {
+                    configIndicator.innerHTML = '<span class="dot error"></span>';
+                    configDetails.innerHTML = `
+                        <strong>Status:</strong> Not Configured<br>
+                        <span class="config-error">Please run setup from command line first</span>
+                    `;
+                }
+            } catch (error) {
+                configIndicator.innerHTML = '<span class="dot error"></span>';
+                configDetails.innerHTML = `
+                    <strong>Error:</strong> Cannot connect to server<br>
+                    <span class="config-error">${error.message}</span>
+                `;
+            }
+        }
+
+        // Form submission
+        document.getElementById('witnessForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            if (!configLoaded) {
+                alert('Please wait for configuration to load or run setup from command line.');
+                return;
+            }
+
+            const form = event.target;
+            const submitBtn = document.getElementById('submitBtn');
+            const progressLog = document.getElementById('progressLog');
+
+            const formData = {
+                account_name: form.account_name.value,
+                url: form.url.value,
+                wif_key: form.wif_key.value
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            progressLog.innerHTML = 'Starting process...';
+
+            try {
+                const response = await fetch('/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    progressLog.innerHTML += `<br>${result.message}`;
+                    listenForProgress();
+                } else {
+                    progressLog.innerHTML += `<br><span class="error">Error: ${result.message}</span>`;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Start Key Rotation';
+                }
+            } catch (error) {
+                progressLog.innerHTML += `<br><span class="error">Network Error: ${error}</span>`;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Start Key Rotation';
+            }
+        });
+
+        // Reconfigure button
+        document.getElementById('reconfigureBtn').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Requesting...';
+
+            try {
+                const response = await fetch('/reconfigure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Reconfigure Execution Mode';
+            }
+        });
+
+        // Log controls
+        document.getElementById('clearLogBtn').addEventListener('click', function() {
+            document.getElementById('progressLog').innerHTML = 'Log cleared...';
+        });
+
+        document.getElementById('autoScrollBtn').addEventListener('click', function() {
+            autoScroll = !autoScroll;
+            this.textContent = autoScroll ? 'Auto-scroll: ON' : 'Auto-scroll: OFF';
+            this.classList.toggle('active', autoScroll);
+        });
+
+        function listenForProgress() {
+            const progressLog = document.getElementById('progressLog');
+            const eventSource = new EventSource('/progress');
+            let isFirst = true;
+
+            eventSource.onmessage = function(event) {
+                if (isFirst) {
+                    progressLog.innerHTML = '';
+                    isFirst = false;
+                }
+
+                // Add timestamp and format the message
+                const message = event.data;
+
+                // Check for special completion messages first
+                if (message.includes("PROCESS_COMPLETE_SUCCESS")) {
+                    // Button is always visible, just re-enable submit button
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = 'Start Key Rotation';
+                    return; // Don't print this special message to the log
+                }
+
+                if (message.includes("PROCESS_COMPLETE_FAILURE")) {
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = 'Start Key Rotation';
+                    return; // Don't print this special message to the log
+                }
+
+                // Format and print regular messages
+                const isError = message.includes('ERROR') || message.includes('FATAL') || message.includes('❌');
+                const isSuccess = message.includes('✅') || message.includes('🎉');
+                const isWarning = message.includes('⚠️') || message.includes('WARNING');
+
+                let messageClass = '';
+                if (isError) messageClass = 'error';
+                else if (isSuccess) messageClass = 'success';
+                else if (isWarning) messageClass = 'warning';
+
+                progressLog.innerHTML += `<span class="${messageClass}">${message}</span><br>`;
+
+                // Auto-scroll if enabled
+                if (autoScroll) {
+                    progressLog.scrollTop = progressLog.scrollHeight;
+                }
+            };
+
+            eventSource.onerror = function() {
+                eventSource.close();
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Start Key Rotation';
+
+                // Add completion message to log
+                const progressLog = document.getElementById('progressLog');
+                progressLog.innerHTML += '<br><span class="info">--- Process completed ---</span><br>';
+                if (autoScroll) {
+                    progressLog.scrollTop = progressLog.scrollHeight;
+                }
+            };
+        }
+
+        // Show Keys button - now always visible and provides proper feedback
+        document.getElementById('showKeysBtn').addEventListener('click', async function() {
+            const btn = this;
+            const keyDetails = document.getElementById('keyDetails');
+            const keysContainer = document.getElementById('keysContainer');
+
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            try {
+                const response = await fetch('/get-keys');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const keyText = `Public Key: ${data.keys.pub_key}\nPrivate WIF Key: ${data.keys.wif_key}`;
+                    keyDetails.textContent = keyText;
+                    keysContainer.style.display = 'block';
+                    btn.textContent = 'Keys Displayed';
+                    btn.disabled = false; // Re-enable so user can view keys again if needed
+                } else {
+                    alert('Error: Could not retrieve keys. ' + (data.message || 'No keys found. Run a key rotation first.'));
+                    btn.disabled = false;
+                    btn.textContent = 'Show New Keys';
+                }
+            } catch (error) {
+                console.error('Error fetching keys:', error);
+                alert('An error occurred while trying to fetch the keys.');
+                btn.disabled = false;
+                btn.textContent = 'Show New Keys';
+            }
+        });
+
+    </script>
+</body>
+</html>
