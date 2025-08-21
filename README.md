@@ -119,9 +119,13 @@ The web interface provides a user-friendly way to manage your witness node.
 
 I am actively working on improving this tool. Here are some of the planned features:
 
-    Nuitka/PyInstaller Compilation: I plan to investigate compiling the project with Nuitka or PyInstaller. This will create a standalone executable, making it more accessible to a wider range of users by simplifying the installation process.
-
-    Expanded Functionality: More features are planned to further simplify witness node management.
+    Nuitka/PyInstaller Compilation: I plan to investigate compiling 
+    the project with Nuitka or PyInstaller. 
+    This will create a standalone executable, making it more accessible to a 
+    wider range of users by simplifying the installation process.
+    
+    Expanded Functionality: More features are planned to further 
+    simplify witness node management.
 
 # Contributing
 
